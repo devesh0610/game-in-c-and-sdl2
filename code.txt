@@ -1,0 +1,31 @@
+ SDL_Window *window;     //declare a window
+ SDL_Renderer *renderer;   //declare a renderer(one who draws and etc etc)
+ SDL_Init(SDL_INIT_VIDEO);   //initialize sdl2
+
+ window = SDL_CreateWindow("Game Window",                //title
+                              SDL_WINDOWPOS_UNDEFINED,      //x pos of window
+                              SDL_WINDOWPOS_UNDEFINED,      //y pos of =
+                              640,                          //width,in px
+                              480,                          //height in px
+                              0                             //flag
+                              );
+ renderer = SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);         
+    gameState.renderer=renderer;
+
+
+
+
+SDL_Surface *starSurface;
+game->star=SDL_CreateTextureFromSurface(game-> renderer,starSurface);
+    SDL_FreeSurface(starSurface);
+
+
+
+int processEvents(SDL_Window *window,GameState *game)
+
+
+
+
+
+
+

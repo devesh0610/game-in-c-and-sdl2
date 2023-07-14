@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="temp" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/temp" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/temp" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="C:/SDL2/include" />
+			<Add directory="C:/SDL2_image-2.6.3/i686-w64-mingw32/include" />
+			<Add directory="C:/SDL2_mixer-2.6.3/i686-w64-mingw32/include" />
+			<Add directory="C:/SDL 2/SDL2_ttf-2.20.2/i686-w64-mingw32/include" />
+		</Compiler>
+		<Linker>
+			<Add library="SDL2main" />
+			<Add library="SDL2" />
+			<Add library="SDL2_image" />
+			<Add library="SDL2_mixer" />
+			<Add library="SDL2_ttf" />
+			<Add directory="C:/SDL2/lib" />
+			<Add directory="C:/SDL2_image-2.6.3/i686-w64-mingw32/lib" />
+			<Add directory="C:/SDL2_mixer-2.6.3/i686-w64-mingw32/lib" />
+			<Add directory="C:/SDL 2/SDL2_ttf-2.20.2/i686-w64-mingw32/lib" />
+		</Linker>
+		<Unit filename="temp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>

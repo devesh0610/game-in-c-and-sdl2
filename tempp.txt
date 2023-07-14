@@ -1,0 +1,232 @@
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 700
+#define PADDLE_WIDTH 20
+#define PADDLE_HEIGHT 80
+#define BALL_SIZE 10
+#define BALL_SPEED 6
+#define COUNTDOWN_SECONDS 3
+#define SQUARE_SIZE 40
+
+int color = 0;
+int state = 0;
+int squareX = -SQUARE_SIZE; // Initial square position
+
+// Structure to hold the game state
+typedef struct {
+    SDL_Rect paddle1; // Paddle for player 1
+    SDL_Rect paddle2; // Paddle for player 2
+    SDL_Rect ball;    // Ball
+    int ball_dx;      // Ball's x-axis direction
+    int ball_dy;      // Ball's y-axis direction
+    int score1;       // Score for player 1
+    int score2;       // Score for player 2
+    TTF_Font* font;   // Font for score display
+    int countdown;    // Countdown value
+    Uint32 countdownStartTime; // Countdown start time
+
+} GameState;
+
+// Initialize the game state
+void initGameState(GameState* gameState) {
+
+    state = 0;
+    // Initialize the paddles
+    gameState->paddle1.x = 10;
+    gameState->paddle1.y = WINDOW_HEIGHT / 2 - PADDLE_HEIGHT / 2;
+    gameState->paddle1.w = PADDLE_WIDTH;
+    gameState->paddle1.h = PADDLE_HEIGHT;
+
+    gameState->paddle2.x = WINDOW_WIDTH - PADDLE_WIDTH - 10;
+    gameState->paddle2.y = WINDOW_HEIGHT / 2 - PADDLE_HEIGHT / 2;
+    gameState->paddle2.w = PADDLE_WIDTH;
+    gameState->paddle2.h = PADDLE_HEIGHT;
+
+    // Initialize the ball
+    gameState->ball.x = WINDOW_WIDTH / 2 - BALL_SIZE / 2;
+    gameState->ball.y = WINDOW_HEIGHT / 2 - BALL_SIZE / 2;
+    gameState->ball.w = BALL_SIZE;
+    gameState->ball.h = BALL_SIZE;
+
+    gameState->ball_dx = BALL_SPEED;
+    gameState->ball_dy = BALL_SPEED;
+
+    // Initialize the scores
+    gameState->score1 = 0;
+    gameState->score2 = 0;
+
+    // Initialize the font
+    TTF_Init();
+    gameState->font = TTF_OpenFont("font.ttf", 24);
+
+    // Initialize countdown
+    gameState->countdown = COUNTDOWN_SECONDS;
+    gameState->countdownStartTime = 0;
+}
+
+// Update the game state
+void updateGameState(GameState* gameState) {
+    // Start the countdown
+    if (gameState->countdownStartTime == 0) {
+        gameState->countdownStartTime = SDL_GetTicks();
+    }
+
+    // Check if countdown is finished
+    Uint32 currentTime = SDL_GetTicks();
+    Uint32 elapsedTime = currentTime - gameState->countdownStartTime;
+    if (elapsedTime >= COUNTDOWN_SECONDS * 1000) {
+        if (gameState->score1 == 3 || gameState->score2 == 3) {
+            state = 0;
+            initGameState(gameState);
+        }
+        gameState->countdown = 0;
+    } else {
+        gameState->countdown = COUNTDOWN_SECONDS - (elapsedTime / 1000);
+        return; // Skip the game update during the countdown
+    }
+
+    // Move the paddles
+    const Uint8* state = SDL_GetKeyboardState(NULL);
+    if (state[SDL_SCANCODE_W] && gameState->paddle1.y > 0) {
+        gameState->paddle1.y -= 8;
+    }
+    if (state[SDL_SCANCODE_S] && gameState->paddle1.y < WINDOW_HEIGHT - PADDLE_HEIGHT) {
+        gameState->paddle1.y += 8;
+    }
+    if (state[SDL_SCANCODE_UP] && gameState->paddle2.y > 0) {
+        gameState->paddle2.y -= 8;
+    }
+    if (state[SDL_SCANCODE_DOWN] && gameState->paddle2.y < WINDOW_HEIGHT - PADDLE_HEIGHT) {
+        gameState->paddle2.y += 8;
+    }
+
+    // Move the ball
+    gameState->ball.x += gameState->ball_dx;
+    gameState->ball.y += gameState->ball_dy;
+
+    // Ball collision with paddles
+    if (SDL_HasIntersection(&gameState->ball, &gameState->paddle1)) {
+        gameState->ball_dx = BALL_SPEED;
+    }
+    if (SDL_HasIntersection(&gameState->ball, &gameState->paddle2)) {
+        gameState->ball_dx = -BALL_SPEED;
+    }
+
+    // Ball collision with walls
+    if (gameState->ball.y <= 0 || gameState->ball.y >= WINDOW_HEIGHT - BALL_SIZE) {
+        gameState->ball_dy = -gameState->ball_dy;
+    }
+
+    // Ball out of bounds
+    if (gameState->ball.x <= 0) {
+        gameState->score2++;
+        gameState->ball.x = WINDOW_WIDTH / 2 - BALL_SIZE / 2;
+        gameState->ball.y = WINDOW_HEIGHT / 2 - BALL_SIZE / 2;
+    }
+    if (gameState->ball.x >= WINDOW_WIDTH - BALL_SIZE) {
+        gameState->score1++;
+        gameState->ball.x = WINDOW_WIDTH / 2 - BALL_SIZE / 2;
+        gameState->ball.y = WINDOW_HEIGHT / 2 - BALL_SIZE / 2;
+    }
+
+    // Ball collision with the square
+    if (squareX >= 0 && SDL_HasIntersection(&gameState->ball, &(SDL_Rect){squareX, WINDOW_HEIGHT / 2 - SQUARE_SIZE / 2, SQUARE_SIZE, SQUARE_SIZE})) {
+        gameState->ball_dx = -gameState->ball_dx;
+        if (color == 0) {
+            gameState->paddle2.h += 10; // Increase paddle 1 length
+        } else {
+            gameState->paddle1.h += 10; // Increase paddle 2 length
+        }
+    }
+
+    // Random square generation
+    if (currentTime % 1000 <= 10 && squareX < 0) {
+        color = rand() % 2; // Random color (0 or 1)
+        squareX = rand() % (WINDOW_WIDTH - SQUARE_SIZE); // Random x-coordinate for the square
+    }
+}
+
+// Render the game state
+void renderGameState(SDL_Renderer* renderer, const GameState* gameState) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
+
+    if (state == 1) {
+        // ...
+
+    } else {
+        // Render the paddles
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+        SDL_RenderFillRect(renderer, &gameState->paddle1);
+        SDL_RenderFillRect(renderer, &gameState->paddle2);
+
+        // Render the ball
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+        SDL_RenderFillRect(renderer, &gameState->ball);
+
+        // Render the square
+        if (squareX >= 0) {
+            SDL_SetRenderDrawColor(renderer, color * 255, color * 255, color * 255, 0);
+            SDL_RenderFillRect(renderer, &(SDL_Rect){squareX, WINDOW_HEIGHT / 2 - SQUARE_SIZE / 2, SQUARE_SIZE, SQUARE_SIZE});
+        }
+
+        // Render the scores
+        char scoreText[32];
+        snprintf(scoreText, sizeof(scoreText), "%d : %d", gameState->score1, gameState->score2);
+        SDL_Surface* surface = TTF_RenderText_Solid(gameState->font, scoreText, (SDL_Color){255, 255, 255});
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_Rect scoreRect = {WINDOW_WIDTH / 2 - surface->w / 2, 10, surface->w, surface->h};
+        SDL_RenderCopy(renderer, texture, NULL, &scoreRect);
+        SDL_FreeSurface(surface);
+        SDL_DestroyTexture(texture);
+
+        // Render the countdown
+        if (gameState->countdown > 0) {
+            char countdownText[4];
+            snprintf(countdownText, sizeof(countdownText), "%d", gameState->countdown);
+            surface = TTF_RenderText_Solid(gameState->font, countdownText, (SDL_Color){255, 255, 255});
+            texture = SDL_CreateTextureFromSurface(renderer, surface);
+            SDL_Rect countdownRect = {WINDOW_WIDTH / 2 - surface->w / 2, WINDOW_HEIGHT / 2 - surface->h / 2, surface->w, surface->h};
+            SDL_RenderCopy(renderer, texture, NULL, &countdownRect);
+            SDL_FreeSurface(surface);
+            SDL_DestroyTexture(texture);
+        }
+    }
+
+    SDL_RenderPresent(renderer);
+}
+
+int main(int argc, char* argv[]) {
+    srand(time(NULL));
+
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window* window = SDL_CreateWindow("Pong", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    GameState gameState;
+    initGameState(&gameState);
+
+    SDL_Event event;
+    int running = 1;
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = 0;
+            }
+        }
+
+        updateGameState(&gameState);
+        renderGameState(renderer, &gameState);
+        SDL_Delay(6);
+    }
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+}
